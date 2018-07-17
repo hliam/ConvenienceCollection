@@ -225,7 +225,7 @@ class AutoInput(_RedirectStream):
     Args:
         *args (str): The strings to use as inputs (in the order to be
             used).
-    
+
     Example:
         >>> with AutoInput('hello') as ai:
         ...     print(input())
