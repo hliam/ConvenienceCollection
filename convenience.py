@@ -1,3 +1,5 @@
+import hashlib
+import os
 import platform as _platform_module
 from contextlib import _RedirectStream, suppress
 from functools import wraps
@@ -281,6 +283,28 @@ def auto_input_decorator(*inputs: str):
                 return func(*args, **kwargs)
         return wrapped
     return wrapper
+
+
+def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> str:
+    """Get the hash of a file.
+
+    Args:
+        path (os.pathlike, str): The path of the file.
+        algorithm (object): The hash algorithm object to use. This
+            should have an `update` method. Defaults to
+            `hashlib.blake2b`.
+        block_size (int): The amount of bytes to read into memory at
+            once. This should be a multiple of the hash algorithm's
+            block size. Defaults to 65536.
+    """
+    with open(path, 'rb') as f:
+        hash_ = algorithm()
+        while True:
+            buf = f.read(block_size)
+            if not buf:
+                break
+            hash_.update(buf)
+    return hash_.hexdigest()
 
 
 if __name__ == '__main__':
