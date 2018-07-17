@@ -34,23 +34,23 @@ def requires_platform(platform: str):
     Examples:
         # if using windows
         >>> @requires_platform('windows')
-        >>> def f():
-        >>>     print('Hello, World!')
+        ... def f():
+        ...     print('Hello, World!')
         >>> f()
         Hello, World!
 
         >>> @requires_platform('linux')
-        >>> def f():
-        >>>     print('Hello, World!')
+        ... def f():
+        ...     print('Hello, World!')
         >>> f()
         Traceback (most recent call last):
         ...
-        PlatformError: This function requires platform 'windows'
+        PlatformError: this operation requires platform 'linux'
 
     """
     platform = platform.lower()
 
-    def wrapper(func):
+    def wrapper(func: object):
         @wraps(func)
         def wrapped(*args, **kwargs):
             if not platform == _platform:
@@ -150,11 +150,14 @@ class Label:
             to '\n'.
 
     Examples:
+        >>> import colorama
+        >>> from platform import system
         >>> from colorama import Fore
+        >>> if system() == 'Windows':
+        ...     colorama.init()
         >>> class Labels:
         ...    error = Label('Error', Fore.LIGHTRED_EX)
         ...    success = Label('Success', Fore.LIGHTGREEN_EX)
-        ...
         >>> Labels.error('error message with red label')
         [Error] error message with red label
         >>> Labels.success('success message with green label')
