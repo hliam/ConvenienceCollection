@@ -22,7 +22,7 @@ class PlatformError(Exception):
 
 
 def requires_platform(platform: str):
-    """A docstring that raises an error if a function is run on an
+    """A decorator that raises an error if a function is run on an
     unsupported platform.
 
     Args:
@@ -68,15 +68,16 @@ def pluralize(word: str, n: int, plural: str='s', append: bool=True) -> str:
 
     Args:
         word (str): The word to pluralize. `str` is called on this.
-        n (int): The number that decides the word or not. If this number
-            is 1, the word will not be pluralized, otherwise it will be.
+        n (int): The number that decides if the word should be plural
+            or not. If this number is 1, the word will not be
+            pluralized, otherwise it will be.
         plural (:obj:`str`, optional): If `append` is True, this string
             will be appended to the word if it should be pluralized. If
             `append` is false, this string will be returned if the word
-            should be pluralized.
+            should be pluralized. Defaults to 's'.
         append (:obj:`bool`, optional): Whether `plural` should be
             appended to the word (True) or returned in place of the word
-            (False).
+            (False). Defaults to True
 
     Returns:
         str: The plural of `word` if n is not 1. Otherwise return
@@ -102,7 +103,7 @@ def pluralize(word: str, n: int, plural: str='s', append: bool=True) -> str:
 
 
 def run_in_background(func: object):
-    """Run the first argument in a thread, letting it finish on its own."""
+    """Run `func` in a thread, letting it finish on its own."""
     @wraps(func)
     def wrapped(*args, **kwargs):
         Thread(target=func, args=args, kwargs=kwargs).start()
@@ -111,7 +112,7 @@ def run_in_background(func: object):
 
 @run_in_background
 def notify(title: str, message: str=' ', duration: int=5, icon: str=None):
-    """Send a windows notification.
+    """Send a windows (only) notification.
 
     Args:
         title (str): The title of the notification.
