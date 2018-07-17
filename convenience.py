@@ -1,16 +1,17 @@
 import platform as _platform_module
-from contextlib import suppress
+from contextlib import _RedirectStream, suppress
 from functools import wraps
+from io import StringIO
 from threading import Thread
 from typing import Tuple
 
 import colorama
+from colorama import Fore
 with suppress(ImportError):
     import win10toast
     _toaster = win10toast.ToastNotifier()
 
 
-Fore = colorama.Fore
 _platform = _platform_module.system().lower()
 
 
@@ -216,3 +217,67 @@ class Label:
         print(''.join((pre, encasing_color, encasing[0], label_color, label, Fore.RESET,
                        encasing_color, encasing[1], ' ', message_color, message, Fore.RESET)),
               end=end)
+
+
+class AutoInput(_RedirectStream):
+    """A context manager to write to stdin with (to automate `input()`).
+
+    Args:
+        *args (str): The strings to use as inputs (in the order to be
+            used).
+    
+    Example:
+        >>> with AutoInput('hello') as ai:
+        ...     print(input())
+        ...     ai.add('eggs', 'spam')
+        ...     print(input(), input())
+        ...
+        hello
+        eggs spam
+    """
+
+    def __init__(self, *args: str):
+        super().__init__(StringIO())
+        self._stream = 'stdin'
+
+        self.add(*args)
+
+    def add(self, *args: str):
+        location = self._new_target.tell()
+        # Go to the end of the stream.
+        for _ in self._new_target.readlines():
+            pass
+        self._new_target.write('\n'.join(args) + '\n')
+        self._new_target.seek(location)
+
+    def __enter__(self):
+        super().__enter__()
+        return self
+
+
+def auto_input_decorator(*inputs: str):
+    """Use `AutoInput` as a decorator.
+
+    Args:
+        *inputs (str): The strings to use as inputs (in the order to be
+            used).
+
+    Example:
+        >>> @auto_input_decorator('hello', 'goodbye')
+        ... def func(a):
+        ...     print(input())
+        ...     print(a)
+        ...     print(input())
+        >>> func('eggs')
+        hello
+        eggs
+        goodbye
+
+    """
+    def wrapper(func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            with AutoInput(*inputs):
+                return func(*args, **kwargs)
+        return wrapped
+    return wrapper
