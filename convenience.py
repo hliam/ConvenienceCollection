@@ -281,3 +281,8 @@ def auto_input_decorator(*inputs: str):
                 return func(*args, **kwargs)
         return wrapped
     return wrapper
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
