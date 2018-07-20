@@ -286,7 +286,7 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> str:
+def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
@@ -297,7 +297,7 @@ def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: 
         block_size (int): The amount of bytes to read into memory at
             once. This should be a multiple of the hash algorithm's
             block size. Defaults to 65536.
-    
+
     Returns:
         bytes: The digest of the hash.
     """
@@ -322,7 +322,7 @@ def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b, block_si
         block_size (int): The amount of bytes to read into memory at
             once. This should be a multiple of the hash algorithm's
             block size. Defaults to 65536.
-    
+
     Returns:
         str: The hex digest of the hash.
     """
