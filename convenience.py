@@ -8,7 +8,6 @@ from io import StringIO
 from threading import Thread
 from typing import List, Tuple
 
-import colorama
 from colorama import Fore
 with suppress(ImportError):
     import win10toast
