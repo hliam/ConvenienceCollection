@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import os
 import platform as _platform_module
@@ -5,7 +6,7 @@ from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import Tuple
+from typing import List, Tuple
 
 import colorama
 from colorama import Fore
@@ -335,6 +336,112 @@ def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b,
                 break
             hash_.update(buf)
     return hash_.hexdigest()
+
+
+def chunk_list_inplace(lst: list, size: int) -> List[list]:
+    """Split a list into chunks (inplace).
+
+    If the list doesn't divide equally, all excess items are appended to
+    the end of the output list. To drop the excess items, use
+    `chunk_list_inplace_drop_excess`.
+    For performance reasons, this function modifies the original list.
+    To not modify the original list, use `chunk_list`.
+
+    Args:
+        lst(list): The list to chunk.
+        size(int): The size of chunks to make.
+
+    Examples:
+        >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
+        [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+        >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
+        [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]
+    """
+    out = []
+    while lst:
+        out.append(lst[:size])
+        del lst[:size]
+    return out
+
+
+def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
+    """Split a list into chunks (inplace).
+
+    If the list doesn't divide equally, all excess items are dropped. To
+    keep the excess items, use `chunk_list_inplace`.
+    For performance reasons, this function modifies the original list.
+    To not modify the original list, use `chunk_list_drop_excess`.
+
+    Args:
+        lst(list): The list to chunk.
+        size(int): The size of chunks to make.
+
+    Examples:
+        >>> chunk_list_inplace_drop_excess(
+        ...     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
+        [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        >>> chunk_list_inplace_drop_excess(
+        ...     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        >>> chunk_list_inplace_drop_excess(
+        ...     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
+        [[1, 2, 3, 4], [5, 6, 7, 8]]
+    """
+    out = chunk_list(lst, size)
+    if not len(out[-1]) == size:
+        out.pop()
+    return out
+
+
+def chunk_list(lst: list, size: int) -> List[list]:
+    """Split a list into chunks.
+
+    If the list doesn't divide equally, all excess items are appended to
+    the end of the output list. To drop the excess items, use
+    `chunk_list_drop_excess`.
+    If the original list is not used after this function is run (and can
+    safely be modified), use `chunk_list_inplace` for performace
+    reasons.
+
+    Args:
+        lst(list): The list to chunk.
+        size(int): The size of chunks to make.
+
+    Examples:
+        >>> chunk_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
+        [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        >>> chunk_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]
+        >>> chunk_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
+        [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]
+    """
+    return chunk_list_inplace(copy.copy(lst), size)
+
+
+def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
+    """Split a list into chunks.
+
+    If the list doesn't divide equally, all excess items are dropped. To
+    keep the excess items, use `chunk_list`.
+    If the original list is not used after this function is run (and can
+    safely be modified), use `chunk_list_inplace_drop_excess` for
+    performace reasons.
+
+    Args:
+        lst(list): The list to chunk.
+        size(int): The size of chunks to make.
+
+    Examples:
+        >>> chunk_list_drop_excess([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
+        [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]
+        >>> chunk_list_drop_excess([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        >>> chunk_list_drop_excess([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
+        [[1, 2, 3, 4], [5, 6, 7, 8]]
+    """
+    return chunk_list_inplace_drop_excess(copy.copy(lst), size)
 
 
 if __name__ == '__main__':
