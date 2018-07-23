@@ -358,6 +358,7 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
         >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
         [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]
     """
+    # Ya know, maybe just rewrite this in C if I care about performance this much. TODO?
     out = []
     while lst:
         out.append(lst[:size])
@@ -416,7 +417,7 @@ def chunk_list(lst: list, size: int) -> List[list]:
         >>> chunk_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
         [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]
     """
-    return chunk_list_inplace(copy.copy(lst), size)
+    return chunk_list_inplace(list(lst), size)
 
 
 def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
@@ -440,7 +441,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
         >>> chunk_list_drop_excess([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
         [[1, 2, 3, 4], [5, 6, 7, 8]]
     """
-    return chunk_list_inplace_drop_excess(copy.copy(lst), size)
+    return chunk_list_inplace_drop_excess(list(lst), size)
 
 
 if __name__ == '__main__':
