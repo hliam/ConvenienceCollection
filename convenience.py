@@ -311,7 +311,8 @@ def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: 
     return hash_.digest()
 
 
-def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> str:
+def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b,
+                  block_size: int=65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
