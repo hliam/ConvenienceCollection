@@ -444,6 +444,62 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     return chunk_list_inplace_drop_excess(list(lst), size)
 
 
+def get_expanded_str(string: str, lst: List[str]):
+    """Get the first string of a list that starts with the most
+    characters of a given string.
+
+    If the string is empty, return the first item of the list. If the
+    list is empty as well, raise a `ValueError`. A `ValueError` will be
+    raised if the string is not in the list.
+
+    Args:
+        string(str): The string to find caracters in common with.
+        lst(list): The list of strings to test against. This list should
+            contain strings.
+
+    Rasises:
+        ValueError: If no item of the list has any begining characters
+            in common with the string.
+
+    Examples:
+        >>> get_expanded_str('ro', ['rock', 'paper', 'scissors'])
+        'rock'
+        >>> get_expanded_str('', ['rock', 'paper', 'scissors'])
+        'rock'
+        >>> get_expanded_str('rock', ['rock', 'paper', 'scissors'])
+        'rock'
+        >>> get_expanded_str('egg', ['rock', 'paper', 'scissors'])
+        Traceback (most recent call last):
+        ...
+        ValueError: string 'egg' not in list
+        >>> get_expanded_str('o', ['rock', 'paper', 'scissors'])
+        Traceback (most recent call last):
+        ...
+        ValueError: string 'o' not in list
+    """
+    # TODO: clean this up
+    if lst:
+        if not string:
+            return lst[0]
+    else:
+        raise ValueError(f'string {string!r} not in list')
+    scores = {i: 0 for i in lst}
+    for i in lst:
+        if i == string:
+            return i
+        score = 0
+        with suppress(IndexError):
+            for n, char in enumerate(i):
+                if not char == string[n]:
+                    break
+                score += 1
+        scores[i] = score
+    guess = max(scores.items(), key=lambda i: i[1])
+    if len(guess[0]) < len(string) or guess[1] == 0:
+        raise ValueError(f'string {string!r} not in list')
+    return guess[0]
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
