@@ -339,7 +339,7 @@ def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b,
 
 
 def chunk_list_inplace(lst: list, size: int) -> List[list]:
-    """Split a list into chunks (inplace).
+    """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are appended to
     the end of the output list. To drop the excess items, use
@@ -368,7 +368,7 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
 
 
 def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
-    """Split a list into chunks (inplace).
+    """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are dropped. To
     keep the excess items, use `chunk_list_inplace`.
