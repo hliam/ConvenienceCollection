@@ -472,10 +472,6 @@ def get_expanded_str(string: str, lst: List[str]):
         Traceback (most recent call last):
         ...
         ValueError: string 'egg' not in list
-        >>> get_expanded_str('o', ['rock', 'paper', 'scissors'])
-        Traceback (most recent call last):
-        ...
-        ValueError: string 'o' not in list
     """
     # TODO: clean this up
     if lst:
