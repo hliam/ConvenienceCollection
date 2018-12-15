@@ -1,6 +1,7 @@
 import hashlib
 import os
 import platform as _platform_module
+import collections
 from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
@@ -13,6 +14,7 @@ with suppress(ImportError):
     _toaster = win10toast.ToastNotifier()
 
 
+Callable = collections.abc.Callable
 _platform = _platform_module.system().lower()
 
 
@@ -443,7 +445,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     return chunk_list_inplace_drop_excess(list(lst), size)
 
 
-def get_expanded_str(string: str, lst: List[str]):
+def get_expanded_str(string: str, lst: List[str], key: Callable=lambda x: x):
     """Get the first string of a list that starts with the most
     characters of a given string.
 
@@ -452,9 +454,13 @@ def get_expanded_str(string: str, lst: List[str]):
     raised if the string is not in the list.
 
     Args:
-        string(str): The string to find caracters in common with.
+        string(str): The string (or string-like object) to find
+            characters in common with.
         lst(list): The list of strings to test against. This list should
-            contain strings.
+            contain `str`s or string-like objects.
+        key(Callable): This is called on each item of `lst` to get the
+            string to use for that item's score. Should return a `str`
+            or string-like object.
 
     Rasises:
         ValueError: If no item of the list has any begining characters
@@ -471,15 +477,23 @@ def get_expanded_str(string: str, lst: List[str]):
         Traceback (most recent call last):
         ...
         ValueError: string 'egg' not in list
+        >>> class Human:
+        ...     def __init__(self, name: str):
+        ...         self.name = name
+        ...     def __repr__(self):
+        ...         return f'Human(name={self.name!r})'
+        >>> humans = [Human('joe'), Human('liam'), Human('bob')]
+        >>> get_expanded_str('li', humans, lambda x: x.name)
+        Human(name='liam')
     """
-    # TODO: clean this up
     if lst:
         if not string:
             return lst[0]
     else:
         raise ValueError(f'string {string!r} not in list')
     scores = {i: 0 for i in lst}
-    for i in lst:
+    for original in lst:
+        i = key(original)
         if i == string:
             return i
         score = 0
@@ -488,9 +502,9 @@ def get_expanded_str(string: str, lst: List[str]):
                 if not char == string[n]:
                     break
                 score += 1
-        scores[i] = score
+        scores[original] = score
     guess = max(scores.items(), key=lambda i: i[1])
-    if len(guess[0]) < len(string) or guess[1] == 0:
+    if len(key(guess[0])) < len(string) or guess[1] == 0:
         raise ValueError(f'string {string!r} not in list')
     return guess[0]
 
