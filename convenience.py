@@ -1,4 +1,3 @@
-import copy
 import hashlib
 import os
 import platform as _platform_module
