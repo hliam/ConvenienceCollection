@@ -1,12 +1,12 @@
 import hashlib
 import os
-import platform as _platform_module
 import collections
+import platform as _platform_module
 from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 from colorama import Fore
 with suppress(ImportError):
@@ -359,7 +359,6 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
         >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)
         [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]
     """
-    # Ya know, maybe just rewrite this in C if I care about performance this much. TODO?
     out = []
     while lst:
         out.append(lst[:size])
@@ -507,6 +506,65 @@ def get_expanded_str(string: str, lst: List[str], key: Callable=lambda x: x):
     if len(key(guess[0])) < len(string) or guess[1] == 0:
         raise ValueError(f'string {string!r} not in list')
     return guess[0]
+
+
+def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
+    """Memoize a method based of the object's attributes.
+
+    This is a decorator. Cache the return value of a method and bind the
+    cahched value to the current values of `attrs`. If all `attrs` of
+    the object are the same as a previous time the method was run, use
+    the cached value. The method will only ever be run one time for each
+    unique combination of attribute values.
+
+    Args:
+        *attrs (str): The attributes to check.
+    
+    Examples:
+        >>> class C:
+        ...     def __init__(self):
+        ...         self.a = 5
+        ...     @memoize_from_attrs('a')
+        ...     def method(self):
+        ...         print('ran C.method()')
+        ...         return self.a + 3
+        ...
+        >>> c=C()
+        >>> c.method()
+        ran C.method()
+        8
+        >>> c.method()
+        8
+        >>> c.a = 10
+        >>> c.method()
+        ran C.method()
+        13
+        >>> c.a = 5
+        >>> c.method()
+        8
+    """
+    # TODO: word the docstring better
+    if isinstance(attrs_iter, str):
+        attrs = tuple(*attrs_iter, *attrs)
+    else:
+        attrs = tuple(attrs_iter, *attrs)
+
+    def wrapper(func):
+
+        @wraps(func)
+        def wrapped(obj, *args, **kwargs):
+            obj_attrs = tuple(getattr(obj, attr) for attr in attrs)
+            try:
+                return obj.__attr_memoize[obj_attrs]
+            except KeyError:
+                pass
+            except AttributeError:
+                obj.__attr_memoize = {}
+            result = func(obj, *args, **kwargs)
+            obj.__attr_memoize[obj_attrs] = result
+            return result
+        return wrapped
+    return wrapper
 
 
 if __name__ == '__main__':
