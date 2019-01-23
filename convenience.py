@@ -6,7 +6,7 @@ from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Generator
 
 from colorama import Fore
 with suppress(ImportError):
@@ -402,7 +402,7 @@ def chunk_list(lst: list, size: int) -> List[list]:
     the end of the output list. To drop the excess items, use
     `chunk_list_drop_excess`.
     If the original list is not used after this function is run (and can
-    safely be modified), use `chunk_list_inplace` for performace
+    safely be modified), use `chunk_list_inplace` for performance
     reasons.
 
     Args:
@@ -427,7 +427,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     keep the excess items, use `chunk_list`.
     If the original list is not used after this function is run (and can
     safely be modified), use `chunk_list_inplace_drop_excess` for
-    performace reasons.
+    performance reasons.
 
     Args:
         lst(list): The list to chunk.
@@ -461,8 +461,8 @@ def get_expanded_str(string: str, lst: List[str], key: Callable=lambda x: x):
             string to use for that item's score. Should return a `str`
             or string-like object.
 
-    Rasises:
-        ValueError: If no item of the list has any begining characters
+    Raises:
+        ValueError: If no item of the list has any beginning characters
             in common with the string.
 
     Examples:
@@ -512,14 +512,14 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
     """Memoize a method based of the object's attributes.
 
     This is a decorator. Cache the return value of a method and bind the
-    cahched value to the current values of `attrs`. If all `attrs` of
+    cached value to the current values of `attrs`. If all `attrs` of
     the object are the same as a previous time the method was run, use
     the cached value. The method will only ever be run one time for each
     unique combination of attribute values.
 
     Args:
         *attrs (str): The attributes to check.
-    
+
     Examples:
         >>> class C:
         ...     def __init__(self):
@@ -565,6 +565,59 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
             return result
         return wrapped
     return wrapper
+
+
+def gen_run(*funcs: Callable) -> Generator:
+    """Run a list of callables as iterated over.
+
+    Passing keyword arguments to the functions is not supported--use
+    lambdas instead. To call every callable when the function is run,
+    use `run`.
+
+    Args:
+        *funcs: The objects to call.
+
+    Yields:
+        The output of the callables.
+
+    Examples:
+        >>> def f(a):
+        ...     print('ran f')
+        ...     return a + 5
+        >>> for i in gen_run(lambda: f(1), lambda: f(2)):
+        ...     print(i)
+        ran f
+        6
+        ran f
+        7
+    """
+    for func in funcs:
+        yield func()
+
+
+def run(*funcs: Callable) -> list:
+    """Run a list of callables.
+
+    Passing keyword arguments to the functions is not supported--use
+    lambdas instead. To call the functions as they are being iterated
+    over (as a generator), use `gen_run`.
+
+    Args:
+        *funcs: The objects to call.
+
+    Returns:
+        list: The output of the functions.
+
+    Examples:
+        >>> def f(a):
+        ...     print('ran f')
+        ...     return a + 5
+        >>> run(lambda: f(1), lambda: f(2))
+        ran f
+        ran f
+        [6, 7]
+    """
+    return [func() for func in funcs]
 
 
 if __name__ == '__main__':
