@@ -287,11 +287,11 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
+def hash_file(f: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
-        path (os.pathlike, str): The path of the file.
+        f (os.pathlike, str): Readable object to hash.
         algorithm (object): The hash algorithm object to use. This
             should have an `update` method. Defaults to
             `hashlib.blake2b`.
@@ -302,13 +302,12 @@ def hash_file(path: os.PathLike, algorithm: object=hashlib.blake2b, block_size: 
     Returns:
         bytes: The digest of the hash.
     """
-    with open(path, 'rb') as f:
-        hash_ = algorithm()
-        while True:
-            buf = f.read(block_size)
-            if not buf:
-                break
-            hash_.update(buf)
+    hash_ = algorithm()
+    while True:
+        buf = f.read(block_size)
+        if not buf:
+            break
+        hash_.update(buf)
     return hash_.digest()
 
 
