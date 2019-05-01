@@ -6,7 +6,7 @@ from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple, Iterable, Generator
+from typing import List, Tuple, Iterable, Generator, BinaryIO
 
 from colorama import Fore
 with suppress(ImportError):
@@ -287,11 +287,11 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(f: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
+def hash_file(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
-        f (os.pathlike, str): Readable object to hash.
+        f (os.pathlike, str): Readable binary file-like object to hash.
         algorithm (object): The hash algorithm object to use. This
             should have an `update` method. Defaults to
             `hashlib.blake2b`.
@@ -311,12 +311,11 @@ def hash_file(f: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int
     return hash_.digest()
 
 
-def hash_file_hex(f: os.PathLike, algorithm: object=hashlib.blake2b,
-                  block_size: int=65536) -> str:
+def hash_file_hex(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
-        path (os.pathlike, str): Readable object to hash.
+        f (os.pathlike, str): Readable binary file-like object to hash.
         algorithm (object): The hash algorithm object to use. This
             should have an `update` method. Defaults to
             `hashlib.blake2b`.
