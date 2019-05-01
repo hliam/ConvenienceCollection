@@ -311,12 +311,12 @@ def hash_file(f: os.PathLike, algorithm: object=hashlib.blake2b, block_size: int
     return hash_.digest()
 
 
-def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b,
+def hash_file_hex(f: os.PathLike, algorithm: object=hashlib.blake2b,
                   block_size: int=65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
-        path (os.pathlike, str): The path of the file.
+        path (os.pathlike, str): Readable object to hash.
         algorithm (object): The hash algorithm object to use. This
             should have an `update` method. Defaults to
             `hashlib.blake2b`.
@@ -327,13 +327,12 @@ def hash_file_hex(path: os.PathLike, algorithm: object=hashlib.blake2b,
     Returns:
         str: The hex digest of the hash.
     """
-    with open(path, 'rb') as f:
-        hash_ = algorithm()
-        while True:
-            buf = f.read(block_size)
-            if not buf:
-                break
-            hash_.update(buf)
+    hash_ = algorithm()
+    while True:
+        buf = f.read(block_size)
+        if not buf:
+            break
+        hash_.update(buf)
     return hash_.hexdigest()
 
 
