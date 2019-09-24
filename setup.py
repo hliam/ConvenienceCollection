@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='convenience',
-      version='0.8.2',
+      version='0.9.2',
       author="Liam Henrickson",
       author_email="liam.henrickson@gmail.com",
       license="MIT License",
