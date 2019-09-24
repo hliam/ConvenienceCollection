@@ -1,12 +1,11 @@
-import hashlib
 import os
-import collections
+import hashlib
 import platform as _platform_module
 from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple, Iterable, Generator, BinaryIO
+from typing import List, Tuple, Iterable, Generator, BinaryIO, Callable
 
 from colorama import Fore
 with suppress(ImportError):
@@ -14,7 +13,6 @@ with suppress(ImportError):
     _toaster = win10toast.ToastNotifier()
 
 
-Callable = collections.abc.Callable
 _platform = _platform_module.system().lower()
 
 
@@ -333,6 +331,29 @@ def hash_file_hex(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: in
             break
         hash_.update(buf)
     return hash_.hexdigest()
+
+
+def iter_all_files(path: os.PathLike, on_error: Callable=None, follow_links: bool=False) -> Generator[str, None, None]:
+    """Iterate over all files and subfiles in a directory.
+
+    Note that directories will not be yielded.
+
+    Args:
+        path: The path to iterate over.
+        on_error (optional): A function that will be called in the event
+            of an error. It will be called with one argument--an
+            `OSError` instance. It can raise an error to abort the walk
+            or not raise an error and continue.
+        follow_links (optional): Whether or not to follow symlinks.
+            Defaults to `False`.
+
+    Yields:
+        str: The path of the file at this step of the iteration.
+    """
+    path_join = os.path.join
+    for root, _, files in os.walk(path, onerror=on_error, followlinks=follow_links):
+        for file in files:
+            yield path_join(root, file)
 
 
 def chunk_list_inplace(lst: list, size: int) -> List[list]:
