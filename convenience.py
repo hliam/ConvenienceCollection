@@ -101,7 +101,7 @@ def pluralize(word: str, n: int, plural: str='s', append: bool=True) -> str:
             return plural
 
 
-def run_in_background(func: object):
+def run_in_background(func: Callable):
     """Run `func` in a thread, letting it finish on its own."""
     @wraps(func)
     def wrapped(*args, **kwargs):
@@ -138,19 +138,21 @@ class Label:
 
     Args / Attributes:
         label (str): The label.
-        label_color (str): The color of the label, this should be an
-            ANSI color code. Defaults to `RESET`.
-        message (str): The message. Defaults to None.
-        message_color (str): The color of the message, this should be an
-            ANSI color code. Defaults to `RESET`.
-        encasing (tuple[str]): A tuple of two strings. This is whats
-            printed on either side of the label. Defaults to ('[', ']').
-        encasing_color (str): The color of the encasing, this should be
-            an ANSI color code. Defaults to `RESET`.
-        pre (str): The string to be printed before the first encasing.
-            Defaults to an empty string.
-        end (str): The string to be printed after the message. Defaults
-            to '\n'.
+        label_color (:obj:`str`, optional): The color of the label, this
+            should be an ANSI color code. Defaults to `RESET`.
+        message (:obj:`str`, optional): The message. Defaults to None.
+        message_color (:obj:`str`, optional): The color of the message,
+            this should be an ANSI color code. Defaults to `RESET`.
+        encasing (:obj:`tuple[str]`, optional): A tuple of two strings.
+            This is whats printed on either side of the label. Defaults
+            to ('[', ']').
+        encasing_color (:obj:`str`, optional): The color of the
+        encasing, this should be an ANSI color code. Defaults to
+            `RESET`.
+        pre (:obj:`str`, optional): The string to be printed before the
+            first encasing. Defaults to an empty string.
+        end (:obj:`str`, optional): The string to be printed after the
+            message. Defaults to '\n'.
 
     Examples:
         >>> import colorama
@@ -289,13 +291,13 @@ def hash_file(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65
     """Get the digest of the hash of a file.
 
     Args:
-        f (os.pathlike, str): Readable binary file-like object to hash.
-        algorithm (object): The hash algorithm object to use. This
-            should have an `update` method. Defaults to
+        f (BinaryIO): Readable binary file-like object to hash.
+        algorithm (:obj:`object`, optional): The hash algorithm object
+            to use. This should have an `update` method. Defaults to
             `hashlib.blake2b`.
-        block_size (int): The amount of bytes to read into memory at
-            once. This should be a multiple of the hash algorithm's
-            block size. Defaults to 65536.
+        block_size (:obj:`int`, optional): The amount of bytes to read
+            into memory at once. This should be a multiple of the hash
+            algorithm's block size. Defaults to 65536.
 
     Returns:
         bytes: The digest of the hash.
@@ -314,12 +316,12 @@ def hash_file_hex(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: in
 
     Args:
         f (os.pathlike, str): Readable binary file-like object to hash.
-        algorithm (object): The hash algorithm object to use. This
-            should have an `update` method. Defaults to
+        algorithm (:obj:`object`, optional): The hash algorithm object
+            to use. This should have an `update` method. Defaults to
             `hashlib.blake2b`.
-        block_size (int): The amount of bytes to read into memory at
-            once. This should be a multiple of the hash algorithm's
-            block size. Defaults to 65536.
+        block_size (:obj:`int`, optional): The amount of bytes to read
+            into memory at once. This should be a multiple of the hash
+            algorithm's block size. Defaults to 65536.
 
     Returns:
         str: The hex digest of the hash.
@@ -339,13 +341,13 @@ def iter_all_files(path: os.PathLike, on_error: Callable=None, follow_links: boo
     Note that directories will not be yielded.
 
     Args:
-        path: The path to iterate over.
-        on_error (optional): A function that will be called in the event
-            of an error. It will be called with one argument--an
-            `OSError` instance. It can raise an error to abort the walk
-            or not raise an error and continue.
-        follow_links (optional): Whether or not to follow symlinks.
-            Defaults to `False`.
+        path (os.PathLike): The path to iterate over.
+        on_error (:obj:`Callable`, optional): A function that will be
+            called in the event of an error. It will be called with one
+            argument--an `OSError` instance. It can raise an error to
+            abort the walk or not raise an error and continue.
+        follow_links (:obj:`bool`, optional): Whether or not to follow
+            symlinks. Defaults to `False`.
 
     Yields:
         str: The path of the file at this step of the iteration.
@@ -366,8 +368,8 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
     To not modify the original list, use `chunk_list`.
 
     Args:
-        lst(list): The list to chunk.
-        size(int): The size of chunks to make.
+        lst (list): The list to chunk.
+        size (int): The size of chunks to make.
 
     Examples:
         >>> chunk_list_inplace([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
@@ -393,8 +395,8 @@ def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
     To not modify the original list, use `chunk_list_drop_excess`.
 
     Args:
-        lst(list): The list to chunk.
-        size(int): The size of chunks to make.
+        lst (list): The list to chunk.
+        size (int): The size of chunks to make.
 
     Examples:
         >>> chunk_list_inplace_drop_excess(
@@ -424,8 +426,8 @@ def chunk_list(lst: list, size: int) -> List[list]:
     reasons.
 
     Args:
-        lst(list): The list to chunk.
-        size(int): The size of chunks to make.
+        lst (list): The list to chunk.
+        size (int): The size of chunks to make.
 
     Examples:
         >>> chunk_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
@@ -448,8 +450,8 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     performance reasons.
 
     Args:
-        lst(list): The list to chunk.
-        size(int): The size of chunks to make.
+        lst (list): The list to chunk.
+        size (int): The size of chunks to make.
 
     Examples:
         >>> chunk_list_drop_excess([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 2)
@@ -471,13 +473,13 @@ def get_expanded_str(string: str, lst: List[str], key: Callable=lambda x: x):
     raised if the string is not in the list.
 
     Args:
-        string(str): The string (or string-like object) to find
+        string (str): The string (or string-like object) to find
             characters in common with.
-        lst(list): The list of strings to test against. This list should
-            contain `str`s or string-like objects.
-        key(Callable): This is called on each item of `lst` to get the
-            string to use for that item's score. Should return a `str`
-            or string-like object.
+        lst (List[str]): The list of strings to test against. This list
+            should contain `str`s or string-like objects.
+        key (:obj:`Callable`, optional): This is called on each item of
+            `lst` to get the string to use for that item's score. Should
+            return a `str` or string-like object.
 
     Raises:
         ValueError: If no item of the list has any beginning characters
@@ -536,7 +538,8 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
     unique combination of attribute values.
 
     Args:
-        *attrs (str): The attributes to check.
+        *attrs (str): The attributes to check. If the first argument is
+            not an `str`, it's contents will be used as arguments.
 
     Examples:
         >>> class C:
