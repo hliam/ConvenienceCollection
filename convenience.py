@@ -62,7 +62,7 @@ def requires_platform(platform: str):
     return wrapper
 
 
-def pluralize(word: str, n: int, plural: str='s', append: bool=True) -> str:
+def pluralize(word: str, n: int, plural: str = 's', append: bool = True) -> str:
     """Pluralize a word.
 
     Args:
@@ -109,8 +109,9 @@ def run_in_background(func: Callable):
     return wrapped
 
 
+@requires_platform('windows')
 @run_in_background
-def notify(title: str, message: str=' ', duration: int=5, icon: str=None):
+def notify(title: str, message: str = ' ', duration: int = 5, icon: str = None):
     """Send a windows (only) notification.
 
     Args:
@@ -175,9 +176,9 @@ class Label:
 
     """
 
-    def __init__(self, label: str, label_color=Fore.RESET, message: str=None,
-                 message_color=Fore.WHITE, *, encasing: Tuple[str]=('[', ']'),
-                 encasing_color=Fore.WHITE, pre: str='', end: str='\n'):
+    def __init__(self, label: str, label_color=Fore.RESET, message: str = None,
+                 message_color=Fore.WHITE, *, encasing: Tuple[str] = ('[', ']'),
+                 encasing_color=Fore.WHITE, pre: str = '', end: str = '\n'):
         self.label = label
         self.label_color = label_color
         self.message = message
@@ -197,8 +198,8 @@ class Label:
         message = '' if self.message is None else self.message
         return sum((1, *map(len, self.label, self.encasing[0], self.encasing[1], message)))
 
-    def __call__(self, message: str=None, *, label: str=None, label_color=None, message_color=None,
-                 encasing: tuple=None, encasing_color=None, pre: str=None, end: str=None):
+    def __call__(self, message: str = None, *, label: str = None, label_color=None, message_color=None,
+                 encasing: tuple = None, encasing_color=None, pre: str = None, end: str = None):
         if message is None:
             if self.message is None:
                 message = ''
@@ -287,7 +288,7 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65536) -> bytes:
+def hash_file(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
@@ -311,7 +312,7 @@ def hash_file(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65
     return hash_.digest()
 
 
-def hash_file_hex(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: int=65536) -> str:
+def hash_file_hex(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
@@ -335,7 +336,8 @@ def hash_file_hex(f: BinaryIO, algorithm: object=hashlib.blake2b, block_size: in
     return hash_.hexdigest()
 
 
-def iter_all_files(path: os.PathLike, on_error: Callable=None, follow_links: bool=False) -> Generator[str, None, None]:
+def iter_all_files(path: os.PathLike, on_error: Callable = None,
+                   follow_links: bool = False) -> Generator[str, None, None]:
     """Iterate over all files and subfiles in a directory.
 
     Note that directories will not be yielded.
@@ -464,7 +466,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     return chunk_list_inplace_drop_excess(list(lst), size)
 
 
-def get_expanded_str(string: str, lst: List[str], key: Callable=lambda x: x):
+def get_expanded_str(string: str, lst: List[str], key: Callable = lambda x: x):
     """Get the first string of a list that starts with the most
     characters of a given string.
 
