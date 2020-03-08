@@ -109,6 +109,7 @@ def run_in_background(func: Callable):
     return wrapped
 
 
+@requires_platform('windows')
 @run_in_background
 def notify(title: str, message: str = ' ', duration: int = 5, icon: str = None):
     """Send a windows (only) notification.
