@@ -1,11 +1,12 @@
-import os
 import hashlib
 import platform as _platform_module
+import os
+from copy import copy, deepcopy
 from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple, Iterable, Generator, BinaryIO, Callable
+from typing import BinaryIO, Callable, Generator, Iterable, List, Tuple, TypeVar
 
 from colorama import Fore
 with suppress(ImportError):
@@ -13,6 +14,7 @@ with suppress(ImportError):
     _toaster = win10toast.ToastNotifier()
 
 
+T = TypeVar('T')
 _platform = _platform_module.system().lower()
 
 
@@ -641,6 +643,121 @@ def run(*funcs: Callable) -> list:
         [6, 7]
     """
     return [func() for func in funcs]
+
+
+def _copy_to_obj(src: T, dst: T, shallow_copy: bool = False):
+    """Copy object `src` to object `dst`.
+
+    This will work for object using `__slots__` as well as `__dict__`.
+    """
+    copy_func = copy if shallow_copy else deepcopy
+    if hasattr(src.__class__, '__slots__'):
+        for attr in src.__slots__:
+            if hasattr(src, attr):
+                setattr(dst, attr, copy_func(getattr(src, attr)))
+    else:
+        dst.__dict__ = copy_func(src.__dict__)
+
+
+def copy_init(shallow_copy: bool = False):
+    """This is a decorator that will allow an `__init__` method to copy another object.
+
+    This should only be used to decorate the `__init__` method of a
+    class. If `__init__` is called with only one argument that is an
+    object of the same class, that object's properties will be copied
+    instead of calling this object's `__init__` method. This means that
+    `__init__` will *not* be called when copying. This also means that
+    `__init__` does not need to have arguments after the first be
+    optional (__init__(self, x, y, z) if a perfectly valid signature).
+    This also works with classes that use `__slots__`.
+
+    Note that this decorator, when called without arguments, should not
+    be called with parenthsis at the end. e.g. `@copy_init` should be
+    used instead of `@copy_init()`.
+
+    When writing docstrings, it's recommended to mention the copying
+    behaviour and have the type annotation of the first argument be a
+    `typing.Union`.
+
+    Args:
+        use_deep_copy (bool): Use `copy.deep_copy` if true, otherwise
+            use `copy.copy`. Defaults to true.
+
+    Examples:
+        >>> class C:
+        ...     @copy_init
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        ...     def __repr__(self):
+        ...         return f'C(a={self.a}, b={self.b})'
+        ...
+        >>> C(1, 2)
+        C(a=1, b=2)
+        >>> eggs = C(1, 2)
+        >>> C(eggs)
+        C(a=1, b=2)
+
+        >>> # attributes will be `deep_copy`ed by default
+        >>> foo = C(0, [1, 2, 3])
+        >>> bar = C(foo)
+        >>> foo.b.append(4)
+        >>> foo
+        C(a=0, b=[1, 2, 3, 4])
+        >>> bar
+        C(a=0, b=[1, 2, 3])
+
+        >>> # with shallow copying
+        >>> class C:
+        ...     @copy_init(shallow_copy=True)
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        ...     def __repr__(self):
+        ...         return f'C(a={self.a}, b={self.b})'
+        ...
+        >>> foo = C(0, [1, 2, 3])
+        >>> bar = C(foo)
+        >>> foo.b.append(4)
+        >>> foo
+        C(a=0, b=[1, 2, 3, 4])
+        >>> bar
+        C(a=0, b=[1, 2, 3, 4])
+    """
+    # if `shallow_copy` is callable, that means this decorator is being used without parentheses, so `shallow_copy` is
+    # the function that we're wrapping.
+    func = None
+    if callable(shallow_copy):
+        func = shallow_copy
+        shallow_copy = False
+
+    class Decorator:
+        def __init__(self, func):
+            self.func = func
+
+        def __set_name__(self, owner, name):
+            # here's some light reading on when `__set_name__` is called:
+            # https://docs.python.org/3/reference/datamodel.html#creating-the-class-object
+            nonlocal shallow_copy
+            @wraps(self.func)
+            def wrapper(wrapper_self, *args, **kwargs):
+                if not args:
+                    self.func(wrapper_self, **kwargs)
+                else:
+                    first = args[0]
+                    if wrapper_self.__class__ is first.__class__:
+                        _copy_to_obj(first, wrapper_self, shallow_copy)
+                    else:
+                        self.func(wrapper_self, *args, **kwargs)
+
+            setattr(owner, name, wrapper)
+
+    if func is not None:
+        return Decorator(func)
+    else:
+        return Decorator
 
 
 if __name__ == '__main__':
