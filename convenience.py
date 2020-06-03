@@ -50,11 +50,10 @@ def requires_platform(platform: str):
         Traceback (most recent call last):
         ...
         PlatformError: this operation requires platform 'linux'
-
     """
     platform = platform.lower()
 
-    def wrapper(func: object):
+    def wrapper(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
             if not platform == _platform:
@@ -81,7 +80,7 @@ def pluralize(word: str, n: int, plural: str = 's', append: bool = True) -> str:
             (False). Defaults to True
 
     Returns:
-        str: The plural of `word` if n is not 1. Otherwise return
+        str: The plural of `word` if `n` is not 1. Otherwise return
             `word`. If `append` is True, return `word + plural`,
             otherwise return `plural`.
 
@@ -92,7 +91,6 @@ def pluralize(word: str, n: int, plural: str = 's', append: bool = True) -> str:
         'egg'
         >>> pluralize('cactus', 5, 'cacti', False)
         'cacti'
-
     """
     if n == 1:
         return str(word)
@@ -113,7 +111,7 @@ def run_in_background(func: Callable):
 
 @requires_platform('windows')
 @run_in_background
-def notify(title: str, message: str = ' ', duration: int = 5, icon: str = None):
+def notify(title: str, message: str = ' ', duration: int = 5, icon: os.PathLike = None):
     """Send a windows (only) notification.
 
     Args:
@@ -175,11 +173,10 @@ class Label:
         >>> Labels.success.encasing = ('(', ')')
         >>> Labels.success('success message with green label in parens')
         (Success) success message with green label in parens
-
     """
 
     def __init__(self, label: str, label_color=Fore.RESET, message: str = None,
-                 message_color=Fore.WHITE, *, encasing: Tuple[str] = ('[', ']'),
+                 message_color=Fore.WHITE, *, encasing: Tuple[str, str] = ('[', ']'),
                  encasing_color=Fore.WHITE, pre: str = '', end: str = '\n'):
         self.label = label
         self.label_color = label_color
@@ -234,19 +231,16 @@ class AutoInput(_RedirectStream):
             used).
 
     Example:
-        >>> with AutoInput('hello') as ai:
-        ...     print(input())
+        >>> with AutoInput('hello', 'goodbye') as ai:
         ...     ai.add('eggs', 'spam')
-        ...     print(input(), input())
+        ...     print(input(), input(), input(), input())
         ...
-        hello
-        eggs spam
+        hello goodbye eggs spam
     """
 
     def __init__(self, *args: str):
         super().__init__(StringIO())
         self._stream = 'stdin'
-
         self.add(*args)
 
     def add(self, *args: str):
@@ -263,7 +257,7 @@ class AutoInput(_RedirectStream):
 
 
 def auto_input_decorator(*inputs: str):
-    """Use `AutoInput` as a decorator.
+    """Use `AutoInput` as a decorator. Primarily for debugging.
 
     Args:
         *inputs (str): The strings to use as inputs (in the order to be
@@ -279,7 +273,6 @@ def auto_input_decorator(*inputs: str):
         hello
         eggs
         goodbye
-
     """
     def wrapper(func):
         @wraps(func)
@@ -290,7 +283,7 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> bytes:
+def hash_file(f: BinaryIO, algorithm: Callable = hashlib.blake2b, block_size: int = 65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
@@ -314,7 +307,7 @@ def hash_file(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int 
     return hash_.digest()
 
 
-def hash_file_hex(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> str:
+def hash_file_hex(f: BinaryIO, algorithm: Callable = hashlib.blake2b, block_size: int = 65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
@@ -362,7 +355,7 @@ def iter_all_files(path: os.PathLike, on_error: Callable = None,
             yield path_join(root, file)
 
 
-def chunk_list_inplace(lst: list, size: int) -> List[list]:
+def chunk_list_inplace(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are appended to
@@ -390,7 +383,7 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
     return out
 
 
-def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
+def chunk_list_inplace_drop_excess(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are dropped. To
@@ -419,7 +412,7 @@ def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
     return out
 
 
-def chunk_list(lst: list, size: int) -> List[list]:
+def chunk_list(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks.
 
     If the list doesn't divide equally, all excess items are appended to
@@ -444,7 +437,7 @@ def chunk_list(lst: list, size: int) -> List[list]:
     return chunk_list_inplace(list(lst), size)
 
 
-def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
+def chunk_list_drop_excess(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks.
 
     If the list doesn't divide equally, all excess items are dropped. To
@@ -468,7 +461,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     return chunk_list_inplace_drop_excess(list(lst), size)
 
 
-def get_expanded_str(string: str, lst: List[str], key: Callable = lambda x: x):
+def get_expanded_str(string: str, lst: List[str], key: Callable[[str], str] = lambda x: x):
     """Get the first string of a list that starts with the most
     characters of a given string.
 
@@ -506,7 +499,7 @@ def get_expanded_str(string: str, lst: List[str], key: Callable = lambda x: x):
         ...     def __repr__(self):
         ...         return f'Human(name={self.name!r})'
         >>> humans = [Human('joe'), Human('liam'), Human('bob')]
-        >>> get_expanded_str('li', humans, lambda x: x.name)
+        >>> get_expanded_str('li', humans, key=lambda x: x.name)
         Human(name='liam')
     """
     if lst:
@@ -568,7 +561,6 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
         >>> c.method()
         8
     """
-    # TODO: word the docstring better
     if isinstance(attrs_iter, str):
         attrs = tuple(*attrs_iter, *attrs)
     else:
@@ -592,7 +584,7 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
     return wrapper
 
 
-def gen_run(*funcs: Callable) -> Generator:
+def gen_run(*funcs: Callable[[], T]) -> Generator[T, None, None]:
     """Run a list of callables as iterated over.
 
     Passing keyword arguments to the functions is not supported--use
@@ -620,7 +612,7 @@ def gen_run(*funcs: Callable) -> Generator:
         yield func()
 
 
-def run(*funcs: Callable) -> list:
+def run(*funcs: Callable[[], T]) -> List[T]:
     """Run a list of callables.
 
     Passing keyword arguments to the functions is not supported--use
