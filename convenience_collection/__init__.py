@@ -1,11 +1,12 @@
-import os
 import hashlib
 import platform as _platform_module
+import os
+from copy import copy, deepcopy
 from contextlib import _RedirectStream, suppress
 from functools import wraps
 from io import StringIO
 from threading import Thread
-from typing import List, Tuple, Iterable, Generator, BinaryIO, Callable
+from typing import BinaryIO, Callable, Generator, Iterable, List, Tuple, TypeVar
 
 from colorama import Fore
 with suppress(ImportError):
@@ -13,6 +14,7 @@ with suppress(ImportError):
     _toaster = win10toast.ToastNotifier()
 
 
+T = TypeVar('T')
 _platform = _platform_module.system().lower()
 
 
@@ -48,11 +50,10 @@ def requires_platform(platform: str):
         Traceback (most recent call last):
         ...
         PlatformError: this operation requires platform 'linux'
-
     """
     platform = platform.lower()
 
-    def wrapper(func: object):
+    def wrapper(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
             if not platform == _platform:
@@ -79,7 +80,7 @@ def pluralize(word: str, n: int, plural: str = 's', append: bool = True) -> str:
             (False). Defaults to True
 
     Returns:
-        str: The plural of `word` if n is not 1. Otherwise return
+        str: The plural of `word` if `n` is not 1. Otherwise return
             `word`. If `append` is True, return `word + plural`,
             otherwise return `plural`.
 
@@ -90,7 +91,6 @@ def pluralize(word: str, n: int, plural: str = 's', append: bool = True) -> str:
         'egg'
         >>> pluralize('cactus', 5, 'cacti', False)
         'cacti'
-
     """
     if n == 1:
         return str(word)
@@ -111,7 +111,7 @@ def run_in_background(func: Callable):
 
 @requires_platform('windows')
 @run_in_background
-def notify(title: str, message: str = ' ', duration: int = 5, icon: str = None):
+def notify(title: str, message: str = ' ', duration: int = 5, icon: os.PathLike = None):
     """Send a windows (only) notification.
 
     Args:
@@ -173,11 +173,10 @@ class Label:
         >>> Labels.success.encasing = ('(', ')')
         >>> Labels.success('success message with green label in parens')
         (Success) success message with green label in parens
-
     """
 
     def __init__(self, label: str, label_color=Fore.RESET, message: str = None,
-                 message_color=Fore.WHITE, *, encasing: Tuple[str] = ('[', ']'),
+                 message_color=Fore.WHITE, *, encasing: Tuple[str, str] = ('[', ']'),
                  encasing_color=Fore.WHITE, pre: str = '', end: str = '\n'):
         self.label = label
         self.label_color = label_color
@@ -232,19 +231,16 @@ class AutoInput(_RedirectStream):
             used).
 
     Example:
-        >>> with AutoInput('hello') as ai:
-        ...     print(input())
+        >>> with AutoInput('hello', 'goodbye') as ai:
         ...     ai.add('eggs', 'spam')
-        ...     print(input(), input())
+        ...     print(input(), input(), input(), input())
         ...
-        hello
-        eggs spam
+        hello goodbye eggs spam
     """
 
     def __init__(self, *args: str):
         super().__init__(StringIO())
         self._stream = 'stdin'
-
         self.add(*args)
 
     def add(self, *args: str):
@@ -261,7 +257,7 @@ class AutoInput(_RedirectStream):
 
 
 def auto_input_decorator(*inputs: str):
-    """Use `AutoInput` as a decorator.
+    """Use `AutoInput` as a decorator. Primarily for debugging.
 
     Args:
         *inputs (str): The strings to use as inputs (in the order to be
@@ -277,7 +273,6 @@ def auto_input_decorator(*inputs: str):
         hello
         eggs
         goodbye
-
     """
     def wrapper(func):
         @wraps(func)
@@ -288,7 +283,7 @@ def auto_input_decorator(*inputs: str):
     return wrapper
 
 
-def hash_file(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> bytes:
+def hash_file(f: BinaryIO, algorithm: Callable = hashlib.blake2b, block_size: int = 65536) -> bytes:
     """Get the digest of the hash of a file.
 
     Args:
@@ -312,7 +307,7 @@ def hash_file(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int 
     return hash_.digest()
 
 
-def hash_file_hex(f: BinaryIO, algorithm: object = hashlib.blake2b, block_size: int = 65536) -> str:
+def hash_file_hex(f: BinaryIO, algorithm: Callable = hashlib.blake2b, block_size: int = 65536) -> str:
     """Get the hex digest of the hash of a file.
 
     Args:
@@ -360,7 +355,7 @@ def iter_all_files(path: os.PathLike, on_error: Callable = None,
             yield path_join(root, file)
 
 
-def chunk_list_inplace(lst: list, size: int) -> List[list]:
+def chunk_list_inplace(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are appended to
@@ -388,7 +383,7 @@ def chunk_list_inplace(lst: list, size: int) -> List[list]:
     return out
 
 
-def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
+def chunk_list_inplace_drop_excess(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks (in place).
 
     If the list doesn't divide equally, all excess items are dropped. To
@@ -417,7 +412,7 @@ def chunk_list_inplace_drop_excess(lst: list, size: int) -> List[list]:
     return out
 
 
-def chunk_list(lst: list, size: int) -> List[list]:
+def chunk_list(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks.
 
     If the list doesn't divide equally, all excess items are appended to
@@ -442,7 +437,7 @@ def chunk_list(lst: list, size: int) -> List[list]:
     return chunk_list_inplace(list(lst), size)
 
 
-def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
+def chunk_list_drop_excess(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks.
 
     If the list doesn't divide equally, all excess items are dropped. To
@@ -466,7 +461,7 @@ def chunk_list_drop_excess(lst: list, size: int) -> List[list]:
     return chunk_list_inplace_drop_excess(list(lst), size)
 
 
-def get_expanded_str(string: str, lst: List[str], key: Callable = lambda x: x):
+def get_expanded_str(string: str, lst: List[str], key: Callable[[str], str] = lambda x: x):
     """Get the first string of a list that starts with the most
     characters of a given string.
 
@@ -504,7 +499,7 @@ def get_expanded_str(string: str, lst: List[str], key: Callable = lambda x: x):
         ...     def __repr__(self):
         ...         return f'Human(name={self.name!r})'
         >>> humans = [Human('joe'), Human('liam'), Human('bob')]
-        >>> get_expanded_str('li', humans, lambda x: x.name)
+        >>> get_expanded_str('li', humans, key=lambda x: x.name)
         Human(name='liam')
     """
     if lst:
@@ -566,7 +561,6 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
         >>> c.method()
         8
     """
-    # TODO: word the docstring better
     if isinstance(attrs_iter, str):
         attrs = tuple(*attrs_iter, *attrs)
     else:
@@ -590,7 +584,7 @@ def memoize_from_attrs(attrs_iter: Iterable[str], *attrs: str):
     return wrapper
 
 
-def gen_run(*funcs: Callable) -> Generator:
+def gen_run(*funcs: Callable[[], T]) -> Generator[T, None, None]:
     """Run a list of callables as iterated over.
 
     Passing keyword arguments to the functions is not supported--use
@@ -618,7 +612,7 @@ def gen_run(*funcs: Callable) -> Generator:
         yield func()
 
 
-def run(*funcs: Callable) -> list:
+def run(*funcs: Callable[[], T]) -> List[T]:
     """Run a list of callables.
 
     Passing keyword arguments to the functions is not supported--use
@@ -641,6 +635,121 @@ def run(*funcs: Callable) -> list:
         [6, 7]
     """
     return [func() for func in funcs]
+
+
+def _copy_to_obj(src: T, dst: T, shallow_copy: bool = False):
+    """Copy object `src` to object `dst`.
+
+    This will work for object using `__slots__` as well as `__dict__`.
+    """
+    copy_func = copy if shallow_copy else deepcopy
+    if hasattr(src.__class__, '__slots__'):
+        for attr in src.__slots__:
+            if hasattr(src, attr):
+                setattr(dst, attr, copy_func(getattr(src, attr)))
+    else:
+        dst.__dict__ = copy_func(src.__dict__)
+
+
+def copy_init(shallow_copy: bool = False):
+    """This is a decorator that will allow an `__init__` method to copy another object.
+
+    This should only be used to decorate the `__init__` method of a
+    class. If `__init__` is called with only one argument that is an
+    object of the same class, that object's properties will be copied
+    instead of calling this object's `__init__` method. This means that
+    `__init__` will *not* be called when copying. This also means that
+    `__init__` does not need to have arguments after the first be
+    optional (__init__(self, x, y, z) if a perfectly valid signature).
+    This also works with classes that use `__slots__`.
+
+    Note that this decorator, when called without arguments, should not
+    be called with parenthsis at the end. e.g. `@copy_init` should be
+    used instead of `@copy_init()`.
+
+    When writing docstrings, it's recommended to mention the copying
+    behaviour and have the type annotation of the first argument be a
+    `typing.Union`.
+
+    Args:
+        use_deep_copy (bool): Use `copy.deep_copy` if true, otherwise
+            use `copy.copy`. Defaults to true.
+
+    Examples:
+        >>> class C:
+        ...     @copy_init
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        ...     def __repr__(self):
+        ...         return f'C(a={self.a}, b={self.b})'
+        ...
+        >>> C(1, 2)
+        C(a=1, b=2)
+        >>> eggs = C(1, 2)
+        >>> C(eggs)
+        C(a=1, b=2)
+
+        >>> # attributes will be `deep_copy`ed by default
+        >>> foo = C(0, [1, 2, 3])
+        >>> bar = C(foo)
+        >>> foo.b.append(4)
+        >>> foo
+        C(a=0, b=[1, 2, 3, 4])
+        >>> bar
+        C(a=0, b=[1, 2, 3])
+
+        >>> # with shallow copying
+        >>> class C:
+        ...     @copy_init(shallow_copy=True)
+        ...     def __init__(self, a, b):
+        ...         self.a = a
+        ...         self.b = b
+        ...
+        ...     def __repr__(self):
+        ...         return f'C(a={self.a}, b={self.b})'
+        ...
+        >>> foo = C(0, [1, 2, 3])
+        >>> bar = C(foo)
+        >>> foo.b.append(4)
+        >>> foo
+        C(a=0, b=[1, 2, 3, 4])
+        >>> bar
+        C(a=0, b=[1, 2, 3, 4])
+    """
+    # if `shallow_copy` is callable, that means this decorator is being used without parentheses, so `shallow_copy` is
+    # the function that we're wrapping.
+    func = None
+    if callable(shallow_copy):
+        func = shallow_copy
+        shallow_copy = False
+
+    class Decorator:
+        def __init__(self, func):
+            self.func = func
+
+        def __set_name__(self, owner, name):
+            # here's some light reading on when `__set_name__` is called:
+            # https://docs.python.org/3/reference/datamodel.html#creating-the-class-object
+            nonlocal shallow_copy
+            @wraps(self.func)
+            def wrapper(wrapper_self, *args, **kwargs):
+                if not args:
+                    self.func(wrapper_self, **kwargs)
+                else:
+                    first = args[0]
+                    if wrapper_self.__class__ is first.__class__:
+                        _copy_to_obj(first, wrapper_self, shallow_copy)
+                    else:
+                        self.func(wrapper_self, *args, **kwargs)
+
+            setattr(owner, name, wrapper)
+
+    if func is not None:
+        return Decorator(func)
+    else:
+        return Decorator
 
 
 if __name__ == '__main__':
