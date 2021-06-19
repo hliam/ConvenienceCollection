@@ -7,6 +7,11 @@ from functools import wraps
 from io import StringIO
 from threading import Thread
 from typing import BinaryIO, Callable, Generator, Iterable, List, Tuple, TypeVar
+is_being_run_from_explorer = None
+with suppress(ImportError):
+    import ctypes
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    is_being_run_from_explorer = kernel32.GetConsoleProcessList((ctypes.c_uint * 1)(), 1) <= 2
 
 from colorama import Fore
 with suppress(ImportError):
